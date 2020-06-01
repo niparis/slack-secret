@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "slack-secret"
-version = "0.1.1"
+version = "0.2.0"
 description = ""
 authors = ["Nicolas Paris <ni.paris@gmail.com>"]
 
@@ -12,9 +12,10 @@ slackclient = "^2.6.2"
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
 
+[tool.poetry.scripts]
+slacksecrets = 'slack_secret.main:cli'
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
-[tool.poetry.scripts]
-slacksecrets = 'slack_secret.main:cli'

@@ -1,7 +1,16 @@
 
 
+## Developement
 
-# Getting started
+
+1. Install pre-commit
+
+```
+pip install pre-commit
+pre-commit
+```
+
+## Getting started
 
 pyenv virtualenv 3.8.1 slacksecret
 

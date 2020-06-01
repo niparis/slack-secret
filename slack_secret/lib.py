@@ -33,9 +33,9 @@ def download_file(string: str, token: str, images_folder: str) -> str:
             print(str(ex))
 
         else:
-            localpath = 'protected-file'
+            fname = 'protected-file-not-downloaded'
 
-    return localpath
+    return fname
 
 def download_images(value: Any, token: str, images_folder: str) -> Any:
     

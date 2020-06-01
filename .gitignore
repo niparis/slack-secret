@@ -3,3 +3,4 @@ dist
 slack_secret.egg-info
 Makefile
 *.pyc
+output
