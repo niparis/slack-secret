@@ -1,0 +1,5 @@
+dist
+.vscode
+slack_secret.egg-info
+Makefile
+*.pyc
