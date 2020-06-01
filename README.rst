@@ -5,9 +5,16 @@
 
 1. Install pre-commit
 
+
+Check the doc on https://pre-commit.com/
+
+Or:
+
 ```
 pip install pre-commit
 pre-commit
+pre-commit install
+pre-commit run --all-files
 ```
 
 ## Getting started
