@@ -1,6 +1,6 @@
 dist
 .vscode
 slack_secret.egg-info
-Makefile
+publish.sh
 *.pyc
 output

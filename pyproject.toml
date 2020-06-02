@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "slack-secret"
-version = "0.2.1"
+version = "0.2.2"
 description = "A tool to backup and delete the content of private slack channels"
 authors = ["Nicolas Paris <ni.paris@gmail.com>"]
 classifiers = [
