@@ -1,23 +1,40 @@
 
+Slack Secret
+=============
 
-## Developement
+Installation::
+
+    pip install slack-secret
 
 
-1. Install pre-commit
+
+Developement
+=============
+
+These instructions assume that you've installed the following tools:
+
+* `Pyenv <https://github.com/pyenv/pyenv>`_
+* `Pyenv-virtualenv <https://github.com/pyenv/pyenv-virtualenv>`_
+* `Poetry <https://python-poetry.org/>`_
+* `Pre-commit <https://pre-commit.com/>`_
+
+1. Create a virtualenv
+
+pyenv virtualenv 3.8.1 slacksecret
+
+2. Install pre-commit
 
 
-Check the doc on https://pre-commit.com/
+Check the doc on
 
-Or:
+Or::
 
-```
-pip install pre-commit
-pre-commit
-pre-commit install
-pre-commit run --all-files
-```
+    pip install pre-commit
+    pre-commit install
+    pre-commit run --all-files
 
-## Getting started
+Getting started
+===============
 
 pyenv virtualenv 3.8.1 slacksecret
 
