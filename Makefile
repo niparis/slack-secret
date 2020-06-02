@@ -7,9 +7,9 @@ patch:
 	git add pyproject.toml
 	git commit -m "bumped version using patch"
 	poetry install
+	git push --quiet
 	git tag $(slacksecrets version)
-	git push
-	git push --tags
+	git push --tags --quiet
 	echo "Version bumped."
 
 minor:
@@ -19,9 +19,9 @@ minor:
 	git add pyproject.toml
 	git commit -m "bumped version using major"
 	poetry install
+	git push --quiet
 	git tag $(slacksecrets version)
-	git push
-	git push --tags
+	git push --tags --quiet
 	echo "Version bumped."
 
 major:
@@ -31,9 +31,9 @@ major:
 	git add pyproject.toml
 	git commit -m "bumped version using major"
 	poetry install
+	git push --quiet
 	git tag $(slacksecrets version)
-	git push
-	git push --tags
+	git push --tags --quiet
 	echo "Version bumped."
 
 publish:
