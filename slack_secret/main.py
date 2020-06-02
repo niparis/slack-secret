@@ -2,7 +2,11 @@ import logging
 import os
 
 import click
+
 from slack import WebClient
+
+from . import __version__
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -14,6 +18,7 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 
 @click.group()
+@click.version_option(version=__version__)
 @click.argument("token", type=str)
 def cli(token):
     # slack_token = os.environ["SLACK_API_TOKEN"]
