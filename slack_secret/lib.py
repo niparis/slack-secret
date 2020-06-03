@@ -1,5 +1,6 @@
 import json
 import os
+import socket
 import urllib.request
 
 from typing import Any
@@ -11,7 +12,13 @@ from tqdm import tqdm
 from .main import OUTPUT_FOLDER
 
 
+socket.setdefaulttimeout(5)
+
+
 def download_file(string: str, token: str, images_folder: str) -> str:
+
+    if type(string) is not str:
+        return string
 
     if not (string.lower().endswith((".png", ".jpg", ".jpeg")) and string.lower().startswith("http")):
         return string
@@ -25,6 +32,7 @@ def download_file(string: str, token: str, images_folder: str) -> str:
         urllib.request.install_opener(opener)
         try:
             urllib.request.urlretrieve(string, localpath)
+
         except urllib.error.HTTPError as ex:
             print(f"could not download {string} from {domain}")
             print(str(ex))
@@ -42,6 +50,28 @@ def download_file(string: str, token: str, images_folder: str) -> str:
             fname = "protected-file-not-downloaded"
 
     return fname
+
+
+def download_images_in_message(value, token: str, images_folder: str) -> Any:
+
+    if "files" in value:
+        new_files = []
+        for file in value["files"]:
+            new_dict = {k: download_file(v, token, images_folder) for k, v in file.items()}
+            new_files.append(new_dict)
+
+        value["files"] = new_files
+
+    return value
+
+
+def download_all_messages(messages: list, client, images_folder: str):
+    messages_new = []
+    for message in tqdm(messages):
+        new_message = download_images_in_message(value=message, token=client.token, images_folder=images_folder)
+        messages_new.append(new_message)
+
+    return messages_new
 
 
 def download_images(value: Any, token: str, images_folder: str) -> Any:
@@ -97,8 +127,7 @@ def save_generic_channel(client, channel_id: str, channel_name: str) -> None:
     main_folder = os.path.join(OUTPUT_FOLDER, f"{channel_id} - {channel_name}")
     images_folder = os.path.join(main_folder, "images")
     os.makedirs(images_folder, exist_ok=True)
-
-    download_images(full_data, client.token, images_folder)
+    download_all_messages(full_data, client=client, images_folder=images_folder)
 
     with open(os.path.join(main_folder, f"messages-{channel_id}.json"), "w") as fout:
         fout.write(json.dumps(full_data))

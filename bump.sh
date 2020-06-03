@@ -25,7 +25,7 @@ run()
     git add pyproject.toml
 	git commit -m "bumped version using $semver"
 	git push --quiet
-	git tag $(slacksecrets version)
+	git tag v$(slacksecrets version)
 	git push --tags --quiet
 	echo "Commits & Tags pushed to repo."
 

@@ -5,7 +5,7 @@ from .lib import save_generic_channel
 from .users import _get_user_dict
 
 
-def list_all_im(client):
+def list_all_im(client) -> None:
     resp = client.conversations_list(types="im")
     users = _get_user_dict(client)
     for im in resp.data["channels"]:
@@ -20,7 +20,7 @@ def _get_channelid_from_name(client, name) -> Optional[str]:
             return conversation["id"]
 
 
-def save_single_im(client, name):
+def save_single_im(client, name) -> None:
     channel_id = _get_channelid_from_name(client, name)
     if channel_id:
         save_generic_channel(client, channel_id=channel_id, channel_name=name)
@@ -28,7 +28,7 @@ def save_single_im(client, name):
         print(f"Could not find {name}")
 
 
-def save_all_im(client):
+def save_all_im(client) -> None:
     resp = client.conversations_list(types="im")
     for userid, user_obj in resp.keys():
         save_single_im(client, user_obj["name"])

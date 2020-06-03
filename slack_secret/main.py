@@ -29,12 +29,22 @@ def main(ctx, token):
         ctx.obj["client"] = WebClient(token=token)
 
 
+####
+# Users
+###
+
+
 @main.command(help="save all users as json and download the images")
 @click.pass_context
 def save_users(ctx):
     from slack_secret.users import save_users
 
     save_users(ctx.obj["client"])
+
+
+####
+# Private Channels
+###
 
 
 @main.command(
