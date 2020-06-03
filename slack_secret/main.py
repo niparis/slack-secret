@@ -17,64 +17,100 @@ OUTPUT_FOLDER = "output"
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 
-@click.group()
+@click.group(invoke_without_command=True)
 @click.version_option(version=__version__)
 @click.argument("token", type=str)
-def main(token):
-    global client
-    client = WebClient(token=token)
-
-
-@click.group()
-def no_token():
-    pass
-
-
-@no_token.command(help="Shows version")
-def version():
-    print(__version__)
+@click.pass_context
+def main(ctx, token):
+    ctx.ensure_object(dict)
+    if ctx.invoked_subcommand is None:
+        click.echo(__version__)
+    else:
+        ctx.obj["client"] = WebClient(token=token)
 
 
 @main.command(help="save all users as json and download the images")
-def save_users():
+@click.pass_context
+def save_users(ctx):
     from slack_secret.users import save_users
 
-    save_users(client)
+    save_users(ctx.obj["client"])
 
 
 @main.command(
     help="Lists all the private channels that your token can access. You'll need the channel ID for any othe action"
 )
-def list_private_channels():
+@click.pass_context
+def list_private_channels(ctx):
     from slack_secret.channels import list_private_channels
 
-    list_private_channels(client)
+    list_private_channels(ctx.obj["client"])
 
 
 @main.command(help="Downloads all the messages and images from the supplied channelID")
+@click.pass_context
 @click.argument("channel_id", type=str)
-def save_private_channel(channel_id):
+def save_private_channel(ctx, channel_id):
     from slack_secret.channels import save_private_channel
 
-    save_private_channel(client, channel_id=channel_id)
+    save_private_channel(ctx.obj["client"], channel_id=channel_id)
 
 
 @main.command(help="Downloads all the messages and images from all channels")
-def save_all_private_channels():
+@click.pass_context
+def save_all_private_channels(ctx):
     from slack_secret.channels import save_all_private_channels
 
-    save_all_private_channels(client)
+    save_all_private_channels(ctx.obj["client"])
 
 
 @main.command(help="Deletes all the messages and from the supplied channelID")
+@click.pass_context
 @click.argument("channel_id", type=str)
-def delete_private_channel(channel_id):
+def delete_private_channel(ctx, channel_id):
     from slack_secret.channels import delete_private_channel
 
-    delete_private_channel(client, channel_id=channel_id)
+    delete_private_channel(ctx.obj["client"], channel_id=channel_id)
 
 
-cli = click.CommandCollection(sources=[main, no_token])
+####
+# Instant Messages
+###
+
+
+@main.command(help="Lists all im ")
+@click.pass_context
+def list_all_im(ctx):
+    from slack_secret.im import list_all_im
+
+    list_all_im(ctx.obj["client"])
+
+
+@main.command(help="Save a single im ")
+@click.argument("username", type=str)
+@click.pass_context
+def save_single_im(ctx, username):
+    from slack_secret.im import save_single_im
+
+    save_single_im(ctx.obj["client"], username)
+
+
+@main.command(help="Saves all im, one folder for each conversation.")
+@click.pass_context
+def save_all_im(ctx):
+    from slack_secret.im import save_all_im
+
+    save_all_im(ctx.obj["client"])
+
+
+@main.command(help="Deletes all of your messages in a single im ")
+@click.argument("username", type=str)
+@click.pass_context
+def delete_single_im(ctx, username):
+    from slack_secret.im import delete_single_im
+
+    delete_single_im(ctx.obj["client"], username)
+
 
 if __name__ == "__main__":
-    cli()
+    main()

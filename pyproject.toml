@@ -19,7 +19,7 @@ slackclient = "^2.6.2"
 pytest = "^5.2"
 
 [tool.poetry.scripts]
-slacksecrets = 'slack_secret.main:cli'
+slacksecrets = 'slack_secret.main:main'
 
 
 [tool.isort]

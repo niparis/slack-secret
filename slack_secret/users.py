@@ -1,5 +1,6 @@
 import json
 import os
+
 from typing import Dict
 
 from slack_secret.lib import download_images
@@ -8,6 +9,9 @@ from tqdm import tqdm
 
 
 def _get_user_dict(client) -> Dict[str, dict]:
+    """
+        Returns a dict of all users with key userid and value the user object
+    """
     response = client.users_list()
     users = response["members"]
     return {elem["id"]: elem for elem in users}
