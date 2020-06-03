@@ -27,7 +27,7 @@ run()
 	git push --quiet
 	git tag $(slacksecrets version)
 	git push --tags --quiet
-	echo "Version bumped."
+	echo "Commits & Tags pushed to repo."
 
 }
 
