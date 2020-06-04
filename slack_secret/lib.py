@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 import os
 import socket
@@ -107,7 +108,8 @@ def _get_all_channel_data(client, channel_id: str) -> List[dict]:
     full_data.extend(response.data["messages"])
     while True:
         cursor = response.get("response_metadata", {}).get("next_cursor")
-        # print(f"date is {response.data['messages'][0]['ts']}")
+        date_str = dt.datetime.utcfromtimestamp(int(response.data["messages"][0]["ts"].split(".")[0]))
+        print(f"date is {date_str}")
         if cursor:
             response = client.conversations_history(channel=channel_id, cursor=cursor)
         else:
