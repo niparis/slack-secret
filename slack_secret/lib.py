@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import os
 import socket
+import time
 import urllib.request
 
 from typing import Any
@@ -13,10 +14,27 @@ from tqdm import tqdm
 from .main import OUTPUT_FOLDER
 
 
-socket.setdefaulttimeout(5)
+def _download_safe(opener, url: str, localpath: str):
+    urllib.request.install_opener(opener)
+    retries = 0
+    max_retries = 3
+    while retries < max_retries:
+        try:
+            retries += 1
+            urllib.request.urlretrieve(url, localpath)
+
+        except urllib.error.HTTPError as ex:
+            print(f"could not download {url}")
+            print(str(ex))
+            break
+
+        except socket.timeout:
+            print(f"timeout on {url}")
+            time.sleep(retries ** 2)
 
 
 def download_file(string: str, token: str, images_folder: str) -> str:
+    socket.setdefaulttimeout(5)
 
     if type(string) is not str:
         return string
@@ -30,26 +48,14 @@ def download_file(string: str, token: str, images_folder: str) -> str:
     if domain in ("files.slack.com", "a.slack-edge.com"):
         opener = urllib.request.build_opener()
         opener.addheaders = [("Authorization", f"Bearer {token}")]
-        urllib.request.install_opener(opener)
-        try:
-            urllib.request.urlretrieve(string, localpath)
-
-        except urllib.error.HTTPError as ex:
-            print(f"could not download {string} from {domain}")
-            print(str(ex))
+        _download_safe(opener=opener, url=string, localpath=localpath)
 
     elif domain in ("avatars.slack-edge.com",):
         opener = urllib.request.build_opener()
         urllib.request.install_opener(opener)
-        try:
-            urllib.request.urlretrieve(string, localpath)
-        except urllib.error.HTTPError as ex:
-            print(f"could not download {string} from {domain}")
-            print(str(ex))
+        _download_safe(opener=opener, url=string, localpath=localpath)
 
-        else:
-            fname = "protected-file-not-downloaded"
-
+    socket.setdefaulttimeout(30)
     return fname
 
 
@@ -120,6 +126,31 @@ def _get_all_channel_data(client, channel_id: str) -> List[dict]:
     return full_data
 
 
+def _get_all_channel_data_gen(client, channel_id: str) -> List[dict]:
+    """ Gets all the conversation history of a channel_id in a single list
+    """
+
+    try:
+        response = client.conversations_history(channel=channel_id)
+    except SlackApiError:
+        print("Unknown channel id")
+
+    date_str = dt.datetime.utcfromtimestamp(int(response.data["messages"][0]["ts"].split(".")[0]))
+    print(f"date is {date_str}")
+    yield response.data["messages"]
+
+    while True:
+        cursor = response.get("response_metadata", {}).get("next_cursor")
+        date_str = dt.datetime.utcfromtimestamp(int(response.data["messages"][0]["ts"].split(".")[0]))
+        print(f"date is {date_str}")
+        if cursor:
+            response = client.conversations_history(channel=channel_id, cursor=cursor)
+        else:
+            break
+
+        yield response.data["messages"]
+
+
 def save_generic_channel(client, channel_id: str, channel_name: str) -> None:
     """ Saves all the messages and images from the supplied channel_id in a folder.
     The channel_name is used to create the name of the folder.
@@ -135,11 +166,27 @@ def save_generic_channel(client, channel_id: str, channel_name: str) -> None:
         fout.write(json.dumps(full_data))
 
 
+def _delete_message_with_exclusion(*, client, channel_id: str, message: str, exclusion_list: list, ts: str) -> None:
+    user = message.get("user")
+    if not user or user not in exclusion_list:
+        try:
+            client.chat_delete(channel=channel_id, ts=ts)
+        except SlackApiError as ex:
+            if ex.response.data["error"] == "cant_delete_message":
+                if user and "thread_ts" not in message:
+                    exclusion_list.append(user)
+                else:
+                    pass
+            elif ex.response.data["error"] in ("message_not_found", "thread_not_found"):
+                pass
+            else:
+                raise ex
+
+
 def delete_generic_channel(client, channel_id: str) -> None:
     """ Deletes all the messages that the client is allowed to delete in the supplied channel_id
     """
-    full_data = _get_all_channel_data(client, channel_id=channel_id)
-    print("Messages downloaded, now let's DELETE all messages")
+    print(f"Are you sure you want to DELETE all messages with {channel_id}")
     confirmation = input("Please type YES to proceed: ")
     if confirmation != "YES":
         import sys
@@ -147,23 +194,21 @@ def delete_generic_channel(client, channel_id: str) -> None:
         print("Not deleting.")
         sys.exit()
 
-    for message in tqdm(full_data):
-        # deleting all the threaded messages if needed
-        if "thread_ts" in message:
-            resp = client.conversations_replies(channel=channel_id, ts=message["ts"])
-            for thread_message in resp.data["messages"][1:]:
-                try:
-                    client.chat_delete(channel=channel_id, ts=thread_message["ts"])
-                except SlackApiError as ex:
-                    if ex.response.data["error"] == "cant_delete_message":
-                        pass
-                    else:
-                        raise ex
+    exclusion_list = []
+    for page in _get_all_channel_data_gen(client, channel_id=channel_id):
+        for message in tqdm(page):
+            # deleting all the threaded messages if needed
+            if "thread_ts" in message:
+                resp = client.conversations_replies(channel=channel_id, ts=message["ts"])
+                for thread_message in resp.data["messages"][1:]:
+                    _delete_message_with_exclusion(
+                        client=client,
+                        channel_id=channel_id,
+                        message=message,
+                        exclusion_list=exclusion_list,
+                        ts=thread_message["ts"],
+                    )
 
-        try:
-            client.chat_delete(channel=channel_id, ts=message["ts"])
-        except SlackApiError as ex:
-            if ex.response.data["error"] == "cant_delete_message":
-                pass
-            else:
-                raise ex
+            _delete_message_with_exclusion(
+                client=client, channel_id=channel_id, message=message, exclusion_list=exclusion_list, ts=message["ts"]
+            )
