@@ -20,7 +20,7 @@ These instructions assume that you've installed the following tools:
 
 1. Create a virtualenv
 
-pyenv virtualenv 3.8.1 slacksecret
+pyenv virtualenv 3.8.2 slacksecret
 
 2. Install pre-commit
 
@@ -37,6 +37,8 @@ Getting started
 ===============
 
 pyenv virtualenv 3.8.1 slacksecret
+poetry install
+
 
 
 Using poetry 101
