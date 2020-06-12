@@ -30,7 +30,7 @@ def save_single_im(client, name) -> None:
 
 def save_all_im(client) -> None:
     resp = client.conversations_list(types="im")
-    for userid, user_obj in resp.keys():
+    for _, user_obj in resp.keys():
         save_single_im(client, user_obj["name"])
 
 
